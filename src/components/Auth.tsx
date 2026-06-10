@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { User, Hobby } from '../types';
+import { supabase } from '../lib/supabase';
 import { HOBBIES_LIST, INITIAL_USERS } from '../data';
 import { Sparkles, Shield, User as UserIcon, Lock, Mail, ChevronRight, HelpCircle } from 'lucide-react';
 
@@ -60,7 +61,7 @@ export default function Auth({ onLogin, registeredUsers, onRegister }: AuthProps
     }
   };
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -95,8 +96,29 @@ export default function Auth({ onLogin, registeredUsers, onRegister }: AuthProps
       password: regPassword,
     };
 
-    onRegister(newUser);
-    onLogin(newUser);
+    const { error: insertError } = await supabase
+  .from('users')
+  .insert([
+    {
+      id: newUser.id,
+      username: newUser.username,
+      email: newUser.email,
+      avatar: newUser.avatar,
+      bio: newUser.bio,
+      hobbies: [],
+      role: 'user',
+      password: newUser.password,
+      is_banned: false
+    }
+  ]);
+
+if (insertError) {
+  setError(insertError.message);
+  return;
+}
+
+onRegister(newUser);
+onLogin(newUser);
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {

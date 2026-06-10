@@ -226,10 +226,12 @@ export default function App() {
     setCurrentTab('feed');
     setActiveChatFriendId(null);
   };
+const handleRegister = (newUser: User) => {
+  setAllUsers((prev) => [...prev, newUser]);
+  setCurrentUser(newUser);
+};
 
-  const handleRegister = (newUser: User) => {
-    setAllUsers((prev) => [...prev, newUser]);
-  };
+ 
 
   const addToast = (toast: any) => {
     setToasts((prev) => [...prev, toast]);
