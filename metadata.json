@@ -1,0 +1,6 @@
+{
+  "name": "Mạng Xã Hội Việt",
+  "description": "Mạng xã hội gia đình Đại gia đình Gia Bảo tối giản với các tính năng đăng bài, nhắn tin thời gian thực, kết nối thành viên và trang quản trị admin.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
