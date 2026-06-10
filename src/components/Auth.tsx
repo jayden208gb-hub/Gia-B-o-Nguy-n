@@ -32,35 +32,40 @@ export default function Auth({ onLogin, registeredUsers, onRegister }: AuthProps
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [avatar, setAvatar] = useState('AV_DEFAULT');
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     const query = loginId.trim().toLowerCase();
     const cleanQuery = query.startsWith('@') ? query.slice(1) : query;
 
-    const user = registeredUsers.find(
-      (u) => u.id.toLowerCase() === cleanQuery || u.email.toLowerCase() === query
-    );
+    const { data: user, error: loginError } = await supabase
+  .from('users')
+  .select('*')
+  .or(`id.eq.${cleanQuery},email.eq.${query}`)
+  .single();
 
-    if (user) {
-      if (user.isBanned) {
-        setError('Tài khoản này đã bị khóa do vi phạm tiêu chuẩn cộng đồng.');
-        return;
-      }
-      
-      const expectedPassword = user.password || '123';
-      if (password !== expectedPassword) {
-        setError('Mật khẩu không khớp. Vui lòng kiểm tra lại mật khẩu của bạn.');
-        return;
-      }
+if (loginError || !user) {
+  setError('Tài khoản không tồn tại');
+  return;
+}
 
-      onLogin(user);
-    } else {
-      setError('Mã ID hoặc Email không tồn tại. Nếu bạn chưa có tài khoản, vui lòng chọn thẻ "Tạo tài khoản mới" ở trên để đăng ký.');
-    }
-  };
+if (user.is_banned) {
+  setError('Tài khoản đã bị khóa');
+  return;
+}
 
+if (password !== user.password) {
+  setError('Sai mật khẩu');
+  return;
+}
+
+onLogin({
+  ...user,
+  isBanned: user.is_banned
+});
+
+}; 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -78,7 +83,16 @@ export default function Auth({ onLogin, registeredUsers, onRegister }: AuthProps
     const cleanId = regId.trim().toLowerCase().replace(/\s+/g, '_');
     
     // Check duplication
-    const duplicate = registeredUsers.some((u) => u.id.toLowerCase() === cleanId);
+    const { data: existingUser } = await supabase
+  .from('users')
+  .select('id')
+  .eq('id', cleanId)
+  .maybeSingle();
+
+if (existingUser) {
+  setError('ID người dùng này đã tồn tại');
+  return;
+}
     if (duplicate) {
       setError('ID người dùng này đã tồn tại, vui lòng chọn một ID khác.');
       return;
